@@ -35,14 +35,29 @@ module.exports = {
         },
       };
   
-      function hasAwait(body) {
-        let has = false;
-        context.getSourceCode().traverse(body, {
-          AwaitExpression() {
-            has = true;
-          },
-        });
-        return has;
+      function hasAwait(node) {
+        let found = false;
+  
+        function search(n) {
+          if (!n || found) return;
+  
+          if (n.type === 'AwaitExpression') {
+            found = true;
+            return;
+          }
+  
+          for (const key in n) {
+            const value = n[key];
+            if (Array.isArray(value)) {
+              value.forEach(search);
+            } else if (value && typeof value.type === 'string') {
+              search(value);
+            }
+          }
+        }
+  
+        search(node);
+        return found;
       }
     },
   };
