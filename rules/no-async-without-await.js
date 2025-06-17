@@ -36,8 +36,10 @@ module.exports = {
       'ArrowFunctionExpression:exit': exitFunction,
 
       AwaitExpression() {
-        const fn = functionStack[functionStack.length - 1];
-        if (fn) fn.hasAwait = true;
+        const currentFn = functionStack[functionStack.length - 1];
+        if (currentFn) {
+          currentFn.hasAwait = true;
+        }
       },
     };
   },
