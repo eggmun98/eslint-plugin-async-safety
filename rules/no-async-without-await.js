@@ -8,44 +8,37 @@ module.exports = {
     schema: [],
   },
   create(context) {
-    function checkFunction(node) {
-      if (node.async && !hasAwait(node.body)) {
+    const functionStack = [];
+
+    function enterFunction(node) {
+      if (!node.async) return;
+      functionStack.push({ node, hasAwait: false });
+    }
+
+    function exitFunction() {
+      const fn = functionStack.pop();
+      if (fn && !fn.hasAwait) {
         context.report({
-          node,
+          node: fn.node,
           message: 'Async function has no await expression.',
         });
       }
     }
 
     return {
-      FunctionDeclaration: checkFunction,
-      FunctionExpression: checkFunction,
-      ArrowFunctionExpression: checkFunction,
+      FunctionDeclaration: enterFunction,
+      'FunctionDeclaration:exit': exitFunction,
+
+      FunctionExpression: enterFunction,
+      'FunctionExpression:exit': exitFunction,
+
+      ArrowFunctionExpression: enterFunction,
+      'ArrowFunctionExpression:exit': exitFunction,
+
+      AwaitExpression() {
+        const fn = functionStack[functionStack.length - 1];
+        if (fn) fn.hasAwait = true;
+      },
     };
-
-    function hasAwait(node) {
-      if (!node || !node.body) return false;
-
-      const body = node.body.type === 'BlockStatement' ? node.body.body : [node.body];
-
-      return body.some(traverse);
-
-      function traverse(n) {
-        if (!n || typeof n !== 'object') return false;
-        if (n.type === 'AwaitExpression') return true;
-
-        for (const key of Object.keys(n)) {
-          const child = n[key];
-
-          if (Array.isArray(child)) {
-            if (child.some(traverse)) return true;
-          } else if (child && typeof child.type === 'string') {
-            if (traverse(child)) return true;
-          }
-        }
-
-        return false;
-      }
-    }
   },
 };
