@@ -37,25 +37,32 @@ module.exports = {
   
       function hasAwait(node) {
         let found = false;
-  
+      
         function search(n) {
           if (!n || found) return;
-  
+      
           if (n.type === 'AwaitExpression') {
             found = true;
             return;
           }
-  
+      
           for (const key in n) {
+            if (!Object.prototype.hasOwnProperty.call(n, key)) continue;
+      
             const value = n[key];
+      
             if (Array.isArray(value)) {
-              value.forEach(search);
+              value.forEach(child => {
+                if (child && typeof child.type === 'string') {
+                  search(child);
+                }
+              });
             } else if (value && typeof value.type === 'string') {
               search(value);
             }
           }
         }
-  
+
         search(node);
         return found;
       }
