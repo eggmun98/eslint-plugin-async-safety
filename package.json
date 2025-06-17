@@ -1,6 +1,6 @@
 {
   "name": "eslint-plugin-async-safety",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "ESLint plugin for detecting and preventing async/await anti-patterns.",
   "main": "index.js",
   "keywords": [
